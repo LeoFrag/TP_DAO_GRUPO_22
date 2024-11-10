@@ -1,11 +1,12 @@
 import sqlite3
 
 # Nombre de la base de datos
-DB_NAME = "../hotel.db"
+DB_NAME = "hotel.db"
 
 # Conexión y creación de tablas
 def create_tables():
     # Conectar a la base de datos
+    
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -14,8 +15,8 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS habitaciones (
             id_habitacion INTEGER PRIMARY KEY AUTOINCREMENT,
             numero INTEGER NOT NULL UNIQUE,
-            tipo TEXT CHECK(tipo IN ('simple', 'doble', 'suite')) NOT NULL,
-            estado TEXT CHECK(estado IN ('disponible', 'ocupada')) DEFAULT 'disponible',
+            tipo TEXT NOT NULL,
+            estado TEXT DEFAULT 'disponible',
             precio_por_noche REAL NOT NULL
         );
     ''')
