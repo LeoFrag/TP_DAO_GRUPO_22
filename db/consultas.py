@@ -5,7 +5,7 @@ DB_NAME = "hotel.db"
 
 def obtener_habitaciones():
     # Conectar a la base de datos
-    conn = sqlite3.connect(DB_NAME)  # Asegúrate de que DB_NAME esté definido
+    conn = sqlite3.connect(DB_NAME)  
     cursor = conn.cursor()
 
     try:
@@ -25,11 +25,11 @@ def obtener_habitaciones():
 
 def obtener_clientes():
     # Conectar a la base de datos
-    conn = sqlite3.connect(DB_NAME)  # Asegúrate de que DB_NAME esté definido
+    conn = sqlite3.connect(DB_NAME)  
     cursor = conn.cursor()
 
     try:
-        # Realizar la consulta para obtener todas las habitaciones
+        # Realizar la consulta para obtener todas los clientes
         cursor.execute("SELECT id_cliente, nombre, apellido, direccion, telefono, email FROM clientes")
         # Devuelve los resultados como una lista de tuplas
         clientes = cursor.fetchall()

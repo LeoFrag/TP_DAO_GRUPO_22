@@ -259,7 +259,30 @@ class HotelApp:
         self.fecha_salida_reserva_entry = ttk.Entry(self.tab_reservas)
         self.fecha_salida_reserva_entry.pack()
 
-        ttk.Button(self.tab_reservas, text="Registrar Reserva", command=Hotel.registrar_reserva).pack()
+        ttk.Label(self.tab_reservas, text="Cantidad de personas: ").pack()
+        self.cantidad_personas_reserva_entry = ttk.Entry(self.tab_reservas)
+        self.cantidad_personas_reserva_entry.pack()
+        
+        ttk.Button(
+            self.tab_reservas,  # Aquí debe ser `self.tab_reservas`, no `self.tab_clientes`
+            text="Registrar Reserva",
+            command=self.registrar_reserva_gui  # Llamar a la función intermedia `registrar_reserva_gui`
+        ).pack()
+
+    def registrar_reserva_gui(self):
+        try:
+            # Obtener los datos de las entradas
+            id_cliente = int(self.id_cliente_reserva_entry.get())
+            numero_habitacion = int(self.numero_habitacion_reserva_entry.get())
+            fecha_entrada = datetime.strptime(self.fecha_entrada_reserva_entry.get(), '%Y-%m-%d').date()
+            fecha_salida = datetime.strptime(self.fecha_salida_reserva_entry.get(), '%Y-%m-%d').date()
+            cantidad_personas = int(self.cantidad_personas_reserva_entry.get())
+
+            # Llamar al método de la instancia de hotel
+            self.hotel.registrar_reserva(id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas)
+            messagebox.showinfo("Éxito", "Reserva registrada correctamente")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Error al registrar la reserva: {e}")
 
 
     def setup_facturas_tab(self):

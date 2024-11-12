@@ -36,6 +36,24 @@ def insertar_cliente(cliente):
     finally:
         conn.close()
 
+#Funcion para insertar reservar
+def insertar_reserva(id_cliente, id_habitacion, fecha_entrada, fecha_salida, cantidad_personas):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO reservas (id_cliente, id_habitacion, fecha_entrada, fecha_salida, cantidad_personas)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (id_cliente, id_habitacion, fecha_entrada, fecha_salida, cantidad_personas))
+        
+        conn.commit()
+        print(f"Reserva para el cliente con ID {id_cliente} en la habitación {id_habitacion} insertada exitosamente.")
+    except sqlite3.IntegrityError as e:
+        print("Error al insertar reserva:", e)
+    finally:
+        conn.close()
+
+
 # Función para insertar datos en la tabla 'empleados'
 def insertar_empleado(nombre, apellido, cargo, sueldo):
     conn = sqlite3.connect(DB_NAME)
@@ -51,4 +69,6 @@ def insertar_empleado(nombre, apellido, cargo, sueldo):
         print("Error al insertar empleado:", e)
     finally:
         conn.close()
+
+
 

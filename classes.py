@@ -2,7 +2,7 @@ import datetime
 from collections import defaultdict
 from typing import List, Optional, Dict
 import random
-from db.insercion import insertar_habitacion, insertar_cliente  # Importar el método
+from db.insercion import insertar_habitacion, insertar_cliente, insertar_reserva  # Importar el método
 
 # Clase Habitación
 class Habitacion:
@@ -125,13 +125,43 @@ class Hotel:
                 return False
         return True
 
-    def registrar_reserva(self, reserva: Reserva):
 
-        if self._validar_fecha_reserva(reserva.habitacion, reserva.fecha_entrada, reserva.fecha_salida):
-            reserva.habitacion.estado = 'ocupada'
-            self.reservas.append(reserva)
-        else:
+    def registrar_reserva(self, id_cliente: int, numero_habitacion: int, fecha_entrada: datetime.date, fecha_salida: datetime.date, cantidad_personas: int):
+
+        print("Clientes disponibles:", self.clientes)  # Depuración
+        print("Habitaciones disponibles:", self.habitaciones)  # Depuración
+
+        # Buscar el cliente en la lista de clientes
+        cliente = next((cli for cli in self.clientes if cli.id_cliente == id_cliente), None)
+        if cliente is None:
+            raise ValueError("El cliente no existe en el sistema.")
+        
+        # Buscar la habitación en la lista de habitaciones
+        habitacion = next((hab for hab in self.habitaciones if hab.numero == numero_habitacion), None)
+        if habitacion is None:
+            raise ValueError("La habitación no existe en el sistema.")
+
+
+        # Verificar disponibilidad de la habitación en las fechas solicitadas
+        if not self._validar_fecha_reserva(habitacion, fecha_entrada, fecha_salida):
             raise ValueError("La habitación ya está reservada en esas fechas.")
+        
+        #Crear instancia de reserva 
+        reserva = Reserva(
+            id_reserva=len(self.reservas) + 1,
+            cliente=cliente,
+            habitacion=habitacion,
+            fecha_entrada=fecha_entrada,
+            fecha_salida=fecha_salida,
+            cantidad_personas=cantidad_personas
+        )
+        habitacion.cambiar_estado("Ocupada")
+
+        insertar_reserva(cliente.id_cliente, habitacion.numero, fecha_entrada, fecha_salida, cantidad_personas)
+
+        print(f"Reserva registrada: {reserva}")
+        
+        
         
     def revisar_salidas_diarias(self):
 
@@ -158,6 +188,14 @@ class Hotel:
     """"
     def consultar_disponibilidad(self, fecha: datetime.date) -> List[Habitacion]:
         return [h for h in self.habitaciones if h.estado == 'disponible']
+
+        '''    def registrar_reserva(self, reserva: Reserva):
+
+        if self._validar_fecha_reserva(reserva.habitacion, reserva.fecha_entrada, reserva.fecha_salida):
+            reserva.habitacion.estado = 'ocupada'
+            self.reservas.append(reserva)
+        else:
+            raise ValueError("La habitación ya está reservada en esas fechas.")'''
     """
 
     # Verificar si las fechas de entrada y salida de las reservas no se superponen con la fecha dada.
