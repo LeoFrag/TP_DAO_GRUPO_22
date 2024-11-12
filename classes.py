@@ -89,9 +89,10 @@ class Empleado:
 # Clase Hotel
 class Hotel:
 
-    def __init__(self):
+    def __init__(self, conexion_db):
+        self.conexion_db = conexion_db
         self.habitaciones = []
-        self.clientes =  []
+        self.clientes =  [] 
         self.reservas =  []
         self.facturas =  []
         self.empleados =  []
@@ -117,50 +118,55 @@ class Hotel:
         print(f"Cliente registrado: {cliente}")
 
     # Registrar reserva - Punto 3
-    def _validar_fecha_reserva(self, habitacion: Habitacion, fecha_entrada: datetime.date, fecha_salida: datetime.date) -> bool:
-
-        
-        for reserva in self.reservas: # Validar que la habitacion esta reservada para las fechas que quiero reservar
-            if reserva.habitacion == habitacion and not (fecha_salida <= reserva.fecha_entrada or fecha_entrada >= reserva.fecha_salida):
-                return False
-        return True
 
 
     def registrar_reserva(self, id_cliente: int, numero_habitacion: int, fecha_entrada: datetime.date, fecha_salida: datetime.date, cantidad_personas: int):
+        with self.conexion_db as conexion:
+            cursor = conexion.cursor()
 
-        print("Clientes disponibles:", self.clientes)  # Depuración
-        print("Habitaciones disponibles:", self.habitaciones)  # Depuración
+            # Buscar el cliente en la base de datos
+            cursor.execute("SELECT * FROM clientes WHERE id_cliente = ?", (id_cliente,))
+            cliente_data = cursor.fetchone()
+            if cliente_data is None:
+                raise ValueError("El cliente no existe en el sistema.")
+            cliente = Cliente(*cliente_data)  # Convierte los datos en una instancia de Cliente
+            
+            # Buscar la habitación en la base de datos
+            cursor.execute("SELECT * FROM habitaciones WHERE numero = ?", (numero_habitacion,))
+            habitacion_data = cursor.fetchone()
+            if habitacion_data is None:
+                raise ValueError("La habitación no existe en el sistema.")
+            # Modifica el código para que `habitacion_data` solo pase los primeros 4 o 5 valores necesarios
+            habitacion = Habitacion(*habitacion_data[:4])
+            
+            # Verificar disponibilidad de la habitación en las fechas solicitadas
+            if not self._validar_fecha_reserva(cursor, numero_habitacion, fecha_entrada, fecha_salida):
+                raise ValueError("La habitación ya está reservada en esas fechas.")
+            
+            # Crear instancia de reserva y guardar en la base de datos
+            reserva = Reserva(
+                id_reserva=len(self.reservas) + 1,
+                cliente=cliente,
+                habitacion=habitacion,
+                fecha_entrada=fecha_entrada,
+                fecha_salida=fecha_salida,
+                cantidad_personas=cantidad_personas
+            )
+            habitacion.cambiar_estado("Ocupada")
 
-        # Buscar el cliente en la lista de clientes
-        cliente = next((cli for cli in self.clientes if cli.id_cliente == id_cliente), None)
-        if cliente is None:
-            raise ValueError("El cliente no existe en el sistema.")
+            insertar_reserva(cliente.id_cliente, habitacion.numero, fecha_entrada, fecha_salida, cantidad_personas)
+            print(f"Reserva registrada: {reserva}")
+
+    # Método para validar disponibilidad de la habitación en las fechas solicitadas
+    def _validar_fecha_reserva(self, cursor, id_habitacion: int, fecha_entrada: datetime.date, fecha_salida: datetime.date) -> bool:
+        cursor.execute("""
+            SELECT * FROM reservas 
+            WHERE id_habitacion = ? 
+            AND (fecha_entrada <= ? AND fecha_salida >= ?)
+        """, (id_habitacion, fecha_salida, fecha_entrada))
         
-        # Buscar la habitación en la lista de habitaciones
-        habitacion = next((hab for hab in self.habitaciones if hab.numero == numero_habitacion), None)
-        if habitacion is None:
-            raise ValueError("La habitación no existe en el sistema.")
-
-
-        # Verificar disponibilidad de la habitación en las fechas solicitadas
-        if not self._validar_fecha_reserva(habitacion, fecha_entrada, fecha_salida):
-            raise ValueError("La habitación ya está reservada en esas fechas.")
-        
-        #Crear instancia de reserva 
-        reserva = Reserva(
-            id_reserva=len(self.reservas) + 1,
-            cliente=cliente,
-            habitacion=habitacion,
-            fecha_entrada=fecha_entrada,
-            fecha_salida=fecha_salida,
-            cantidad_personas=cantidad_personas
-        )
-        habitacion.cambiar_estado("Ocupada")
-
-        insertar_reserva(cliente.id_cliente, habitacion.numero, fecha_entrada, fecha_salida, cantidad_personas)
-
-        print(f"Reserva registrada: {reserva}")
-        
+        # Retorna True si no hay reservas en esas fechas, False en caso contrario
+        return cursor.fetchone() is None
         
         
     def revisar_salidas_diarias(self):

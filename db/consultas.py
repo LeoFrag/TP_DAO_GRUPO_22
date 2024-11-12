@@ -43,4 +43,23 @@ def obtener_clientes():
         # Cerrar la conexión (puedes decidir moverlo más tarde, si lo prefieres)
         conn.close()
 
+def obtener_reservas():
+     # Conectar a la base de datos
+    conn = sqlite3.connect(DB_NAME)  
+    cursor = conn.cursor()
+
+    try:
+        # Realizar la consulta para obtener todas los clientes
+        cursor.execute("SELECT id_reserva, id_cliente, id_habitacion ,fecha_entrada, fecha_salida, cantidad_personas FROM reservas")
+        # Devuelve los resultados como una lista de tuplas
+        clientes = cursor.fetchall()
+        return clientes
+
+    except sqlite3.Error as e:
+        print("Error al obtener los datos de la base de datos:", e)
+        return None  # Retorna None si ocurre un error
+
+    finally:
+        # Cerrar la conexión (puedes decidir moverlo más tarde, si lo prefieres)
+        conn.close()
 
