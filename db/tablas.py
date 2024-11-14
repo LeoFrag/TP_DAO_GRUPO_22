@@ -64,12 +64,12 @@ def create_tables():
     # Crear tabla de empleados
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS empleados (
-            id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            apellido TEXT NOT NULL,
-            cargo TEXT CHECK(cargo IN ('recepcionista', 'servicio de limpieza', 'otros')) NOT NULL,
-            sueldo REAL NOT NULL
-        );
+    id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    apellido TEXT NOT NULL,
+    cargo TEXT CHECK(cargo IN ('recepcionista', 'servicio de limpieza', 'camarero', 'gerente', 'otro')) NOT NULL,
+    sueldo REAL NOT NULL
+);
     ''')
 
     # Crear tabla de asignaciones de empleados a habitaciones

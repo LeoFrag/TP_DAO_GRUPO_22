@@ -72,3 +72,18 @@ def insertar_empleado(nombre, apellido, cargo, sueldo):
 
 
 
+def insertar_asignacion(id_empleado, id_habitacion, fecha):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO asignaciones (id_empleado, id_habitacion, fecha)
+            VALUES (?, ?, ?)
+        ''', (id_empleado, id_habitacion, fecha))
+        conn.commit()
+        print(f"Asignación de empleado {id_empleado} a la habitación {id_habitacion} registrada exitosamente.")
+    except sqlite3.IntegrityError as e:
+        print("Error al insertar asignación:", e)
+    finally:
+        conn.close()
+

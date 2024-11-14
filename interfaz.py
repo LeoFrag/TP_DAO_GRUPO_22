@@ -3,7 +3,9 @@ from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 from classes import Hotel, Habitacion
-from db.consultas import obtener_habitaciones, obtener_clientes, obtener_reservas
+from db.consultas import obtener_habitaciones, obtener_clientes, obtener_reservas, obtener_asignaciones, \
+    obtener_empleados
+
 
 # Clase principal de la aplicación Tkinter
 class HotelApp:
@@ -27,6 +29,8 @@ class HotelApp:
         self.tab_reservas = ttk.Frame(self.tab_control)
         self.tab_facturas = ttk.Frame(self.tab_control)
         self.tab_reportes = ttk.Frame(self.tab_control)
+        self.tab_asignacion = ttk.Frame(self.tab_control)
+        self.tab_empleados = ttk.Frame(self.tab_control)
 
         # Añadir pestañas al control de pestañas
         self.tab_control.add(self.tab_habitaciones, text="Habitaciones")
@@ -34,6 +38,8 @@ class HotelApp:
         self.tab_control.add(self.tab_reservas, text="Reservas")
         self.tab_control.add(self.tab_facturas, text="Facturas")
         self.tab_control.add(self.tab_reportes, text="Reportes")
+        self.tab_control.add(self.tab_asignacion, text="Asignación de Empleados")
+        self.tab_control.add(self.tab_empleados, text="Empleados")
         
         self.tab_control.pack(expand=1, fill="both")
 
@@ -43,6 +49,8 @@ class HotelApp:
         self.setup_reservas_tab()
         self.setup_facturas_tab()
         self.setup_reportes_tab()
+        self.setup_asignaciones_tab()
+        self.setup_empleados_tab()
 
     def setup_habitaciones_tab(self):
         # Campos para registrar habitaciones con etiquetas de error
@@ -367,4 +375,203 @@ class HotelApp:
 
     def setup_reportes_tab(self):
         ttk.Button(self.tab_reportes, text="Generar Reporte de Ocupación", command=Hotel.reporte_ocupacion_promedio).pack()
+
+    def setup_asignaciones_tab(self):
+        # Etiquetas y entradas para la asignación
+        ttk.Label(self.tab_asignacion, text="ID Empleado:").pack()
+        self.id_empleado_asignacion_entry = ttk.Entry(self.tab_asignacion)
+        self.id_empleado_asignacion_entry.pack()
+
+        ttk.Label(self.tab_asignacion, text="ID Reserva:").pack()
+        self.id_reserva_asignacion_entry = ttk.Entry(self.tab_asignacion)
+        self.id_reserva_asignacion_entry.pack()
+
+        ttk.Label(self.tab_asignacion, text="Fecha Asignación (YYYY-MM-DD):").pack()
+        self.fecha_asignacion_entry = ttk.Entry(self.tab_asignacion)
+        self.fecha_asignacion_entry.pack()
+
+        ttk.Button(
+            self.tab_asignacion,
+            text="Registrar Asignación",
+            command=self.registrar_asignacion_gui  # Llamar a la función intermedia `registrar_asignacion_gui`
+        ).pack()
+
+        # Botón para ver las asignaciones
+        ttk.Button(self.tab_asignacion, text="Ver Asignaciones", command=self.ver_asignaciones).pack()
+
+    def registrar_asignacion_gui(self):
+        try:
+            # Obtener los datos de las entradas
+            id_empleado = int(self.id_empleado_asignacion_entry.get())
+            id_reserva = int(self.id_reserva_asignacion_entry.get())
+            fecha_asignacion = datetime.strptime(self.fecha_asignacion_entry.get(), '%Y-%m-%d').date()
+
+            # Llamar al método de la instancia de hotel
+            self.hotel.asignar_empleado_a_habitacion(id_empleado, id_reserva, fecha_asignacion)
+            messagebox.showinfo("Éxito", "Asignación registrada correctamente")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Error al registrar la asignación: {e}")
+
+    def ver_asignaciones(self):
+        # Crear una ventana nueva
+        ventana_asignaciones = tk.Toplevel(self.root)
+        ventana_asignaciones.title("Asignaciones de Empleados")
+        ventana_asignaciones.geometry("600x400")
+
+        # Crear un estilo para el Treeview
+        style = ttk.Style()
+        style.theme_use("default")
+
+        style.configure("mystyle.Treeview",
+                        font=('Helvetica', 10),  # Tamaño de fuente legible
+                        rowheight=30,  # Altura de las filas
+                        background="white",  # Fondo blanco
+                        foreground="black",  # Texto en negro
+                        fieldbackground="white",
+                        highlightthickness=1,
+                        bd=1)
+
+        # Configurar el encabezado de la tabla
+        style.configure("mystyle.Treeview.Heading",
+                        font=('Helvetica', 10, 'bold'),  # Fuente más grande y en negrita
+                        background="#E2EAFC",  # Color de fondo del encabezado
+                        foreground="black",
+                        )  # Color de texto del encabezado
+
+        # Aplicar el estilo a las líneas de la tabla
+        style.map("mystyle.Treeview",
+                  background=[("selected", "#c1d3fe")],  # Color de selección
+                  foreground=[("selected", "black")])
+
+        # Crear el Treeview para mostrar la tabla
+        tree = ttk.Treeview(ventana_asignaciones,
+                            columns=("ID Asignación", "ID Empleado", "ID Reserva", "Fecha Asignación"),
+                            show="headings",
+                            style="mystyle.Treeview")
+
+        # Agregar barras de desplazamiento
+        vsb = ttk.Scrollbar(ventana_asignaciones, orient="vertical", command=tree.yview)
+        vsb.pack(side="right", fill="y")
+        tree.configure(yscrollcommand=vsb.set)
+
+        # Configurar encabezados de columna
+        tree.heading("ID Asignación", text="ID Asignación")
+        tree.heading("ID Empleado", text="ID Empleado")
+        tree.heading("ID Reserva", text="ID Reserva")
+        tree.heading("Fecha Asignación", text="Fecha Asignación")
+
+        # Configurar el ancho de las columnas
+        tree.column("ID Asignación", width=100, anchor="center")
+        tree.column("ID Empleado", width=150, anchor="center")
+        tree.column("ID Reserva", width=150, anchor="center")
+        tree.column("Fecha Asignación", width=120, anchor="center")
+
+        asignaciones = obtener_asignaciones()
+
+        # Insertar los datos de las asignaciones en el Treeview
+        for asignacion in asignaciones:
+            # Desempaquetamos la tupla para pasar los valores a las columnas
+            id_asignacion, id_empleado, id_reserva, fecha_asignacion = asignacion
+            tree.insert("", "end", values=(id_asignacion, id_empleado, id_reserva, fecha_asignacion))
+
+        # Empacar el Treeview
+        tree.pack(fill="both", expand=True)
+
+    def setup_empleados_tab(self):
+        ttk.Label(self.tab_empleados, text="Nombre:").pack()
+        self.nombre_empleado_entry = ttk.Entry(self.tab_empleados)
+        self.nombre_empleado_entry.pack()
+
+        ttk.Label(self.tab_empleados, text="Apellido:").pack()
+        self.apellido_empleado_entry = ttk.Entry(self.tab_empleados)
+        self.apellido_empleado_entry.pack()
+
+        ttk.Label(self.tab_empleados, text="Cargo:").pack()
+        self.cargo_empleado_entry = ttk.Entry(self.tab_empleados)
+        self.cargo_empleado_entry.pack()
+
+        ttk.Label(self.tab_empleados, text="Sueldo:").pack()
+        self.sueldo_empleado_entry = ttk.Entry(self.tab_empleados)
+        self.sueldo_empleado_entry.pack()
+
+        ttk.Button(
+            self.tab_empleados,
+            text="Registrar Empleado",
+            command=lambda: self.hotel.registrar_empleado(
+                self.nombre_empleado_entry.get(),
+                self.apellido_empleado_entry.get(),
+                self.cargo_empleado_entry.get(),
+                float(self.sueldo_empleado_entry.get())  # Asegurarse de convertir el sueldo a float
+            )
+        ).pack()
+
+        # Botón para ver empleados
+        ttk.Button(self.tab_empleados, text="Ver Empleados", command=self.ver_empleados).pack()
+
+    def ver_empleados(self):
+        # Crear una ventana nueva
+        ventana_empleados = tk.Toplevel(self.root)
+        ventana_empleados.title("Empleados del Hotel")
+        ventana_empleados.geometry("600x400")
+
+        # Crear un estilo para el Treeview
+        style = ttk.Style()
+        style.theme_use("default")
+
+        style.configure("mystyle.Treeview",
+                        font=('Helvetica', 10),  # Tamaño de fuente legible
+                        rowheight=30,  # Altura de las filas
+                        background="white",  # Fondo blanco
+                        foreground="black",  # Texto en negro
+                        fieldbackground="white",
+                        highlightthickness=1,
+                        bd=1)
+
+        # Configurar el encabezado de la tabla
+        style.configure("mystyle.Treeview.Heading",
+                        font=('Helvetica', 10, 'bold'),  # Fuente más grande y en negrita
+                        background="#E2EAFC",  # Color de fondo del encabezado
+                        foreground="black",
+                        )  # Color de texto del encabezado
+
+        # Aplicar el estilo a las líneas de la tabla
+        style.map("mystyle.Treeview",
+                background=[("selected", "#c1d3fe")],  # Color de selección
+                foreground=[("selected", "black")])
+
+        # Crear el Treeview para mostrar la tabla
+        tree = ttk.Treeview(ventana_empleados,
+                            columns=("ID", "Nombre", "Apellido", "Cargo", "Sueldo"),
+                            show="headings",
+                            style="mystyle.Treeview")
+
+        # Agregar barras de desplazamiento
+        vsb = ttk.Scrollbar(ventana_empleados, orient="vertical", command=tree.yview)
+        vsb.pack(side="right", fill="y")
+        tree.configure(yscrollcommand=vsb.set)
+
+        # Configurar encabezados de columna
+        tree.heading("ID", text="ID")
+        tree.heading("Nombre", text="Nombre")
+        tree.heading("Apellido", text="Apellido")
+        tree.heading("Cargo", text="Cargo")
+        tree.heading("Sueldo", text="Sueldo")
+
+        # Configurar el ancho de las columnas
+        tree.column("ID", width=100, anchor="center")
+        tree.column("Nombre", width=150, anchor="center")
+        tree.column("Apellido", width=150, anchor="center")
+        tree.column("Cargo", width=150, anchor="center")
+        tree.column("Sueldo", width=120, anchor="center")
+
+        empleados = obtener_empleados()
+
+        # Insertar los datos de los empleados en el Treeview
+        for empleado in empleados:
+            # Desempaquetamos la tupla para pasar los valores a las columnas
+            id_empleado, nombre, apellido, cargo, sueldo = empleado
+            tree.insert("", "end", values=(id_empleado, nombre, apellido, cargo, sueldo))
+
+        # Empacar el Treeview
+        tree.pack(fill="both", expand=True)
 

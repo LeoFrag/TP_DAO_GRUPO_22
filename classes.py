@@ -2,7 +2,7 @@ import datetime
 from collections import defaultdict
 from typing import List, Optional, Dict
 import random
-from db.insercion import insertar_habitacion, insertar_cliente, insertar_reserva  # Importar el método
+from db.insercion import insertar_habitacion, insertar_cliente, insertar_reserva, insertar_asignacion, insertar_empleado  # Importar el método
 
 # Clase Habitación
 class Habitacion:
@@ -184,25 +184,32 @@ class Hotel:
         self.facturas.append(factura)
         reserva.habitacion.estado = 'disponible'
 
-    def asignar_empleado_a_habitacion(self, empleado: Empleado, habitacion: Habitacion, fecha: datetime.date):
-        asignaciones_dia = [asig for asig in empleado.asignaciones if asig[1] == fecha]
-        if len(asignaciones_dia) < 5:
-            empleado.asignaciones.append((habitacion, fecha))
-        else:
-            raise ValueError("El empleado no puede tener más de 5 asignaciones diarias.")
-    
-    """"
-    def consultar_disponibilidad(self, fecha: datetime.date) -> List[Habitacion]:
-        return [h for h in self.habitaciones if h.estado == 'disponible']
+    def asignar_empleado_a_habitacion(self, id_empleado, id_habitacion, fecha=None):
+        # Si no se proporciona una fecha, usar la fecha actual
+        if fecha is None:
+            fecha = datetime.date.today()
 
-        '''    def registrar_reserva(self, reserva: Reserva):
+        # Verificar si el empleado es de limpieza
+        empleado = next(
+            (e for e in self.empleados if e.id_empleado == id_empleado and e.cargo == 'servicio de limpieza'), None)
 
-        if self._validar_fecha_reserva(reserva.habitacion, reserva.fecha_entrada, reserva.fecha_salida):
-            reserva.habitacion.estado = 'ocupada'
-            self.reservas.append(reserva)
-        else:
-            raise ValueError("La habitación ya está reservada en esas fechas.")'''
-    """
+        if not empleado:
+            print("Empleado no encontrado o no es de limpieza.")
+            return
+
+        # Limitar las asignaciones diarias
+        if empleado.asignaciones_diarias >= 5:
+            print(f"Empleado {empleado.nombre} {empleado.apellido} ya tiene 5 asignaciones hoy.")
+            return
+
+        # Realizar la asignación en la base de datos
+        try:
+            insertar_asignacion(id_empleado, id_habitacion, fecha)
+            empleado.asignar_habitacion()  # Actualizar el contador de asignaciones del empleado
+            print(
+                f"Empleado {empleado.nombre} {empleado.apellido} asignado a la habitación {id_habitacion} en la fecha {fecha}.")
+        except Exception as e:
+            print(f"Error al asignar empleado: {e}")
 
     # Verificar si las fechas de entrada y salida de las reservas no se superponen con la fecha dada.
     
@@ -230,3 +237,11 @@ class Hotel:
             contador[reserva.habitacion.tipo] += 1
 
         return {tipo: total / (contador[tipo] or 1) for tipo, total in total_ocupacion.items()}
+
+    def registrar_empleado(self, nombre, apellido, cargo, sueldo):
+
+        empleado = Empleado(id_empleado=len(self.empleados) + 1, nombre=nombre, apellido=apellido, cargo=cargo, sueldo=sueldo)
+
+        insertar_empleado(nombre, apellido, cargo, sueldo)
+
+        print(f"Cliente registrado: {empleado}")
