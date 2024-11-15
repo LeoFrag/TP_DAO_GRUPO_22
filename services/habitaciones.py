@@ -43,3 +43,14 @@ class HabitacionService:
         habitaciones = self.gestorBD.obtener_habitaciones_disponibles_por_fecha(fecha)
         return habitaciones
     
+    def obtener_precio_por_noche(self, numero_habitacion):
+        precio_por_noche = self.gestorBD.obtener_precio_por_noche(numero_habitacion)
+        return precio_por_noche
+    
+    def actualizar_estado_habitacion(self, numero_habitacion, estado):
+        self.gestorBD.actualizar_estado_habitacion(numero_habitacion, estado)
+
+    def obtener_tipo_habitacion(self, numero_habitacion):
+        tipo = self.gestorBD.obtener_tipo_habitacion(numero_habitacion)
+        print(tipo)
+        return tipo

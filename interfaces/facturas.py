@@ -10,24 +10,29 @@ class FacturasTab:
         self.clientesService = ClienteService(gestorBD)
         self.setup_ui()
 
+        self.tab.bind("<<FacturaGenerada>>", lambda e: self.cargar_facturas())
+
+
     def setup_ui(self):
         # Título
         tk.Label(self.tab, text="Facturas generadas", font=("Arial", 16, "bold"), fg="#333", bg="#f5f5f5").pack(pady=10)
         
         # Crear el Treeview con las columnas
-        self.tree = ttk.Treeview(self.tab, columns=("ID", "Cliente", "Reserva", "Fecha de emisión", "Total"), show="headings")
+
+        
+        self.tree = ttk.Treeview(self.tab, columns=("ID", "Cliente", "Habitacion", "Fecha de emisión", "Total"), show="headings")
         
         # Configurar encabezados de columna
-        self.tree.heading("ID", text="ID")
+        self.tree.heading("ID", text="ID Reserva")
         self.tree.heading("Cliente", text="Cliente")
-        self.tree.heading("Reserva", text="Reserva")
+        self.tree.heading("Habitacion", text="Habitacion")
         self.tree.heading("Fecha de emisión", text="Fecha de emisión")
         self.tree.heading("Total", text="Total")
         
         # Configurar el tamaño de las columnas
         self.tree.column("ID", width=50, anchor="center")
         self.tree.column("Cliente", width=150, anchor="center")
-        self.tree.column("Reserva", width=100, anchor="center")
+        self.tree.column("Habitacion", width=100, anchor="center")
         self.tree.column("Fecha de emisión", width=120, anchor="center")
         self.tree.column("Total", width=80, anchor="center")
 

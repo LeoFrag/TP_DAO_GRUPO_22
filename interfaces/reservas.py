@@ -41,8 +41,8 @@ class ReservasTab:
         self.reservation_table.heading("Fecha Salida", text="Fecha Salida")
         self.reservation_table.pack(fill="both", expand=True, pady=10)
 
-        self.finalizar_button = ttk.Button(self.tab, text="Finalizar Estadía", command=self.finalizar_estadia)
-        self.finalizar_button.pack()
+        self.finalizar_button = ttk.Button(form_frame, text="Finalizar Estadía", command=self.finalizar_estadia)
+        self.finalizar_button.grid(row=3, column=0, columnspan=2, pady=10)
 
         # Campos adicionales que aparecerán al costado derecho
         self.extra_frame = ttk.Frame(form_frame)
@@ -131,4 +131,29 @@ class ReservasTab:
             tk.messagebox.showerror("Error", str(e))
         
     def finalizar_estadia(self):
-        print("hola")
+        selected_item = self.reservation_table.selection()
+        if not selected_item:
+            tk.messagebox.showwarning("Advertencia", "Por favor, selecciona una reserva para finalizar la estadía.")
+            return
+
+        # Obtener los valores de la reserva seleccionada
+        reserva_data = self.reservation_table.item(selected_item)["values"]
+        id_reserva = reserva_data[0]  # Suponiendo que el ID de la reserva está en la primera columna
+        cliente = reserva_data[1]
+        habitacion = reserva_data[2]
+        # Convertir las fechas de entrada y salida a objetos de fecha
+        fecha_entrada = datetime.strptime(reserva_data[3], "%Y-%m-%d").date()
+        fecha_salida = datetime.strptime(reserva_data[4], "%Y-%m-%d").date()
+
+        # Calcular la diferencia en días
+        dias = (fecha_salida - fecha_entrada).days
+        # Confirmación para finalizar estadía
+        if tk.messagebox.askyesno("Finalizar Estadía", "¿Estás seguro de que deseas finalizar la estadía de esta reserva?"):
+            # Lógica para finalizar la estadía (puede ser una actualización en la base de datos, por ejemplo)
+            self.reservasService.finalizar_estadia(id_reserva, habitacion, dias)  # Implementa este método en ReservaService
+            self.tab.event_generate("<<FacturaGenerada>>")
+            # Eliminar la reserva de la tabla
+            self.reservation_table.delete(selected_item)
+
+            # Mostrar mensaje de éxito
+            tk.messagebox.showinfo("Éxito", "La estadía ha sido finalizada correctamente.")

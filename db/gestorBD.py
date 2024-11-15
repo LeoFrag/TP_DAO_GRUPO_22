@@ -369,6 +369,18 @@ class GestorBD:
             #self.desconectar()
             return []
         
+    def obtener_cliente_reserva(self, id_reserva):
+        """Obtiene el cliente asociado a una reserva."""
+        self.conectar()
+        consulta = 'SELECT id_cliente FROM reservas WHERE id_reserva = ?'
+        cursor = self.ejecutar_consulta(consulta, (id_reserva,))
+        if cursor:
+            id_cliente = cursor.fetchone()
+            #self.desconectar()
+            return id_cliente
+        else:
+            return None
+        
     def obtener_reservas(self):
         
         """Obtiene todas las reservas de la base de datos."""
@@ -403,7 +415,18 @@ class GestorBD:
             # self.desconectar()
             return []
 
-        
+    def obtener_tipo_habitacion(self, numero):
+        """Obtiene el tipo de habitación asociado a una reserva."""
+        self.conectar()
+        consulta = 'SELECT tipo FROM habitaciones WHERE numero = ?'
+        cursor = self.ejecutar_consulta(consulta, (numero,))
+        if cursor:
+            tipo = cursor.fetchone()
+            #self.desconectar()
+            return tipo
+        else:
+            #self.desconectar()
+            return None
         
     def validar_disponibilidad_habitacion(self, numero_habitacion, fecha_entrada, fecha_salida):
         """Verifica si una habitación está disponible en las fechas seleccionadas."""
@@ -438,6 +461,11 @@ class GestorBD:
             JOIN reservas r ON f.id_reserva = r.id_reserva
         '''
         cursor = self.ejecutar_consulta(consulta)
+        return cursor.fetchall() if cursor else []
+    
+    def obtener_reservas_por_periodo(self, fechainicio, fechafin):
+        consulta = "SELECT * FROM reservas WHERE fecha_entrada >= ? AND fecha_salida <= ?"
+        cursor = self.ejecutar_consulta(consulta, (fechainicio, fechafin))
         return cursor.fetchall() if cursor else []
 
     def obtener_empleados(self):
@@ -483,6 +511,12 @@ class GestorBD:
         # Ejecutar la consulta con la fecha como parámetro
         cursor = self.ejecutar_consulta(consulta, (fecha,))
         return cursor.fetchall() if cursor else []
+    
+    def obtener_precio_por_noche(self, numero_habitacion):
+        consulta = 'SELECT precio_por_noche FROM habitaciones WHERE numero = ?'
+        cursor = self.ejecutar_consulta(consulta, (numero_habitacion,))
+        precio = cursor.fetchone()
+        return precio[0] if precio else None
 # ---------------------------------------------------- ACTUALIZACIONES ---------------------------------------------------------
     
     def actualizar_estado_habitacion(self, numero, estado):
@@ -492,6 +526,12 @@ class GestorBD:
         if resultado:
             print("Estado de la habitación actualizado correctamente.")
 
+# ------------------------------------------------------ ELIMINAR --------------------------------------------------------
+
+    def eliminar_reserva(self, id_reserva):
+        """Elimina una reserva por su ID."""
+        consulta = 'DELETE FROM reservas WHERE id_reserva = ?'
+        self.ejecutar_consulta(consulta, (id_reserva,))
 # ---------------------------------------------------- IDS ---------------------------------------------------------
 
     def obtener_proximo_id_cliente(self):
@@ -507,4 +547,10 @@ class GestorBD:
         cursor = self.ejecutar_consulta(consulta)
         max_id = cursor.fetchone()[0]
         return (max_id + 1) if max_id else 1
-    
+
+    def obtener_proximo_id_factura(self):
+        """Obtiene el próximo ID de factura disponible."""
+        consulta = "SELECT MAX(id_factura) FROM facturas"
+        cursor = self.ejecutar_consulta(consulta)
+        max_id = cursor.fetchone()[0]
+        return (max_id + 1) if max_id else 1

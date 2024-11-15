@@ -16,3 +16,6 @@ class Reserva:
 
     def __repr__(self):
         return f"Reserva {self.id_reserva} - Cliente: {self.cliente}, Habitación: {self.habitacion.numero}, Fecha entrada: {self.fecha_entrada}, Fecha salida: {self.fecha_salida}"
+
+
+    
