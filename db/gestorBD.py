@@ -382,6 +382,28 @@ class GestorBD:
         else:
             #self.desconectar()
             return []
+    def obtener_reservas_detalladas(self):
+        """Obtiene todas las reservas detalladas de la base de datos."""
+        self.conectar()
+        
+        # Consulta para obtener reservas con detalles de cliente y habitación
+        consulta = '''
+            SELECT r.id_reserva, c.nombre, c.apellido, r.numero_habitacion, r.fecha_entrada, r.fecha_salida
+            FROM reservas r
+            JOIN clientes c ON r.id_cliente = c.id_cliente
+            JOIN habitaciones h ON r.numero_habitacion = h.numero
+        '''
+        
+        cursor = self.ejecutar_consulta(consulta)
+        if cursor:
+            reservas = cursor.fetchall()
+            # self.desconectar()
+            return reservas
+        else:
+            # self.desconectar()
+            return []
+
+        
         
     def validar_disponibilidad_habitacion(self, numero_habitacion, fecha_entrada, fecha_salida):
         """Verifica si una habitación está disponible en las fechas seleccionadas."""
@@ -407,7 +429,16 @@ class GestorBD:
         else:
             #self.desconectar()()
             return []
-        
+
+    def obtener_facturas_detalladas(self):
+        consulta = '''
+            SELECT f.id_reserva AS nro_reserva, c.nombre, c.apellido, r.numero_habitacion, f.fecha_emision, f.total
+            FROM facturas f
+            JOIN clientes c ON f.id_cliente = c.id_cliente
+            JOIN reservas r ON f.id_reserva = r.id_reserva
+        '''
+        cursor = self.ejecutar_consulta(consulta)
+        return cursor.fetchall() if cursor else []
 
     def obtener_empleados(self):
         
@@ -424,20 +455,34 @@ class GestorBD:
             return []
         
     def obtener_habitaciones_disponibles(self, fecha_inicio, fecha_fin):
-        consulta = """
-            SELECT h.numero, h.tipo
-            FROM habitaciones h
-            LEFT JOIN reservas r ON h.numero = r.numero_habitacion
-            WHERE h.estado = 'disponible'
-            AND (
-                r.numero_habitacion IS NULL
-                OR (r.fecha_salida < ? OR r.fecha_entrada > ?)
-            )
-        """
-        parametros = (fecha_inicio, fecha_fin)
-        cursor = self.ejecutar_consulta(consulta, parametros)
-        return {f"{habitacion[0]}-{habitacion[1]}": habitacion[0] for habitacion in cursor.fetchall()} if cursor else {}
+        consulta = '''
+            SELECT numero
+            FROM habitaciones
+            WHERE numero NOT IN (
+                SELECT numero_habitacion
+                FROM reservas
+                WHERE (fecha_entrada <= ? AND fecha_salida >= ?) 
+                   OR (fecha_entrada <= ? AND fecha_salida >= ?)
+                   OR (fecha_entrada >= ? AND fecha_salida <= ?)
+            );
+        '''
+        # Ejecutar la consulta con los parámetros
+        cursor = self.ejecutar_consulta(consulta, (fecha_fin, fecha_inicio, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin))
+        return cursor.fetchall() if cursor else []
     
+    def obtener_habitaciones_disponibles_por_fecha(self, fecha):
+        consulta = '''
+            SELECT numero, tipo, precio_por_noche
+            FROM habitaciones
+            WHERE numero NOT IN (
+                SELECT numero_habitacion
+                FROM reservas
+                WHERE ? BETWEEN fecha_entrada AND fecha_salida
+            );
+        '''
+        # Ejecutar la consulta con la fecha como parámetro
+        cursor = self.ejecutar_consulta(consulta, (fecha,))
+        return cursor.fetchall() if cursor else []
 # ---------------------------------------------------- ACTUALIZACIONES ---------------------------------------------------------
     
     def actualizar_estado_habitacion(self, numero, estado):
@@ -455,3 +500,11 @@ class GestorBD:
         cursor = self.ejecutar_consulta(consulta)
         max_id = cursor.fetchone()[0]
         return (max_id + 1) if max_id else 1
+    
+    def obtener_proximo_id_reserva(self):
+        """Obtiene el próximo ID de reserva disponible."""
+        consulta = "SELECT MAX(id_reserva) FROM reservas"
+        cursor = self.ejecutar_consulta(consulta)
+        max_id = cursor.fetchone()[0]
+        return (max_id + 1) if max_id else 1
+    

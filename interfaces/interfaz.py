@@ -50,7 +50,7 @@ class HotelApp(tk.Tk):
 
         # Tabs as Frames
         self.tabs = {}
-        for tab in ["habitaciones", "clientes", "reservas", "facturas", "informes"]:
+        for tab in ["habitaciones", "clientes", "reservas","facturas", "informes"]:
             frame = ttk.Frame(self.main_content)
             frame.place(relwidth=1, relheight=1)
             self.tabs[tab] = frame

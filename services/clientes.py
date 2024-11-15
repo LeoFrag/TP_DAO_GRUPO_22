@@ -39,3 +39,4 @@ class ClienteService:
     def obtener_clientes(self):
         clientes = self.gestorBD.obtener_clientes()
         return clientes
+    

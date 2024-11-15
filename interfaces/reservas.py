@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
 from services.reservas import ReservaService
-
+from datetime import datetime, date
 
 class ReservasTab:
     def __init__(self, parent_frame, gestorBD):
@@ -33,59 +33,102 @@ class ReservasTab:
         add_button.grid(row=2, column=0, columnspan=2, pady=10)
 
         # Tabla para mostrar habitaciones disponibles
-        self.reservation_table = ttk.Treeview(self.tab, columns=("Número Habitación", "Tipo"), show="headings")
-        self.reservation_table.heading("Número Habitación", text="Número Habitación")
-        self.reservation_table.heading("Tipo", text="Tipo")
+        self.reservation_table = ttk.Treeview(self.tab, columns=("ID Reserva", "Cliente", "Habitacion", "Fecha Entrada", "Fecha Salida"), show="headings")
+        self.reservation_table.heading("ID Reserva", text="ID Reserva")
+        self.reservation_table.heading("Cliente", text="Cliente")
+        self.reservation_table.heading("Habitacion", text="Habitacion")
+        self.reservation_table.heading("Fecha Entrada", text="Fecha Entrada")
+        self.reservation_table.heading("Fecha Salida", text="Fecha Salida")
         self.reservation_table.pack(fill="both", expand=True, pady=10)
 
-        # Campos adicionales (ocultos inicialmente)
-        self.cliente_combobox = ttk.Combobox(self.tab, state="readonly")
-        self.cliente_combobox.pack(pady=5)
-        
-        self.habitacion_combobox = ttk.Combobox(self.tab, state="readonly")
-        self.habitacion_combobox.pack(pady=5)
-        
-        ttk.Label(self.tab, text="Cantidad de Personas").pack(pady=5)
-        self.num_people = ttk.Entry(self.tab)
-        self.num_people.pack(pady=5)
+        self.finalizar_button = ttk.Button(self.tab, text="Finalizar Estadía", command=self.finalizar_estadia)
+        self.finalizar_button.pack()
+
+        # Campos adicionales que aparecerán al costado derecho
+        self.extra_frame = ttk.Frame(form_frame)
+        self.extra_frame.grid(row=0, column=2, rowspan=3, padx=20)  # Ajustar el padding para moverlo más a la derecha
+
+        # Campos que estarán inicialmente ocultos
+        ttk.Label(self.extra_frame, text="Cliente").grid(row=0, column=0, pady=5)
+        self.cliente_combobox = ttk.Combobox(self.extra_frame, state="readonly")
+        self.cliente_combobox.grid(row=1, column=0, pady=5)
+
+        ttk.Label(self.extra_frame, text="Habitación").grid(row=2, column=0, pady=5)
+        self.habitacion_combobox = ttk.Combobox(self.extra_frame, state="readonly")
+        self.habitacion_combobox.grid(row=3, column=0, pady=5)
+
+        ttk.Label(self.extra_frame, text="Cantidad de Personas").grid(row=4, column=0, pady=5)
+        self.num_people = ttk.Entry(self.extra_frame)
+        self.num_people.grid(row=5, column=0, pady=5)
+
+        # Botón para registrar reserva
+        self.register_button = ttk.Button(self.extra_frame, text="Registrar Reserva", command=self.registrar_reserva)  # Sin command por ahora
+        self.register_button.grid(row=6, column=0, pady=10)
         
         # Inicialmente los campos adicionales están ocultos
-        self.cliente_combobox.pack_forget()
-        self.habitacion_combobox.pack_forget()
-        self.num_people.pack_forget()
+        self.extra_frame.grid_forget()
+
+        # Cargar clientes al iniciar la vista
+        self.cargar_reservas()
+
+
+    def cargar_reservas(self):
+        reservas = self.reservasService.obtener_reservas_detalladas()  # Supongo que este método devuelve una lista de clientes
+        for reserva in reservas:
+            id_reserva = reserva[0]
+            nombre_completo = f"{reserva[1]} {reserva[2]}"  # Nombre y apellido concatenados
+            numero_habitacion = reserva[3]
+            fecha_entrada = reserva[4]
+            fecha_salida = reserva[5]
+            
+            self.reservation_table.insert("", "end", values=(id_reserva, nombre_completo, numero_habitacion, fecha_entrada, fecha_salida))
+
 
     def buscar_habitaciones(self):
-            # Obtener las fechas de entrada y salida seleccionadas
-            fecha_inicio = self.entry_date.get_date()
-            fecha_fin = self.exit_date.get_date()
+        # Obtener las fechas de entrada y salida seleccionadas
+        self.fecha_inicio = datetime.strptime(self.entry_date.get_date(), "%Y-%m-%d").date()
+        self.fecha_fin = datetime.strptime(self.exit_date.get_date(), "%Y-%m-%d").date()
 
-            # Llamar al método de reservas_service para obtener habitaciones disponibles
-            habitaciones_disponibles = self.reservasService.buscar_habitaciones_disponibles(fecha_inicio, fecha_fin)
+        # Validar las fechas
+        if not self.reservasService.validar_fechas(self.fecha_inicio, self.fecha_fin):
+            tk.messagebox.showinfo("Error", "La fecha de salida debe ser posterior a la de entrada.")
+            return
+        
+        # Obtener habitaciones disponibles
+        habitaciones_disponibles = self.reservasService.buscar_habitaciones_disponibles(self.fecha_inicio, self.fecha_fin)
+        if habitaciones_disponibles:
+            self.extra_frame.grid(row=0, column=2, rowspan=3, padx=20)
 
-            # Limpiar la tabla
-            for item in self.reservation_table.get_children():
-                self.reservation_table.delete(item)
+            # Cargar clientes en el diccionario y en el Combobox
+            self.clientes_dict = {f"{cliente[1]} {cliente[2]}": cliente[0] for cliente in self.gestorBD.obtener_clientes()}
+            self.cliente_combobox['values'] = list(self.clientes_dict.keys())
 
-            if habitaciones_disponibles:
-                # Mostrar habitaciones en la tabla
-                for habitacion in habitaciones_disponibles:
-                    self.reservation_table.insert("", "end", values=(habitacion[0], habitacion[1]))
-                
-                # Mostrar campos adicionales
-                self.cliente_combobox.pack(pady=5)
-                self.habitacion_combobox.pack(pady=5)
-                self.num_people.pack(pady=5)
+            # Llenar el ComboBox de habitaciones disponibles
+            self.habitacion_combobox['values'] = [habitacion[0] for habitacion in habitaciones_disponibles]
 
-                # Llenar el ComboBox de clientes
-                clientes = self.gestorBD.obtener_clientes()  # Método para obtener todos los clientes desde la base de datos
-                self.cliente_combobox['values'] = [cliente['nombre'] for cliente in clientes]
+        else:
+            tk.messagebox.showinfo("Sin habitaciones disponibles", "No se encontraron habitaciones disponibles para las fechas seleccionadas.")
+            self.extra_frame.grid_forget()
 
-                # Llenar el ComboBox de habitaciones disponibles
-                self.habitacion_combobox['values'] = [habitacion[0] for habitacion in habitaciones_disponibles]
+    def registrar_reserva(self):
+        try:
 
-            else:
-                tk.messagebox.showinfo("Sin habitaciones disponibles", "No se encontraron habitaciones disponibles para las fechas seleccionadas.")
-                # Ocultar campos si no hay habitaciones disponibles
-                self.cliente_combobox.pack_forget()
-                self.habitacion_combobox.pack_forget()
-                self.num_people.pack_forget()
+            nombre_cliente = self.cliente_combobox.get()
+            cliente_id = self.clientes_dict.get(nombre_cliente)
+            habitacion = self.habitacion_combobox.get()
+            num_personas = self.num_people.get()
+
+            id_reserva = self.gestorBD.obtener_proximo_id_reserva()
+            self.reservasService.registrar_reserva(id_reserva, cliente_id, habitacion, self.fecha_inicio, self.fecha_fin, num_personas)
+
+            # Si se registra correctamente, actualiza la tabla
+            self.reservation_table.insert("", "end", values=(id_reserva, nombre_cliente, habitacion, self.fecha_inicio, self.fecha_fin))
+
+            tk.messagebox.showinfo("Reserva Registrada", "La reserva ha sido registrada exitosamente.")
+
+        except ValueError as e:
+            # Muestra un cuadro de diálogo emergente con el mensaje de error
+            tk.messagebox.showerror("Error", str(e))
+        
+    def finalizar_estadia(self):
+        print("hola")

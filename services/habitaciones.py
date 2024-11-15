@@ -38,3 +38,8 @@ class HabitacionService:
     def obtener_habitaciones(self):
         habitaciones = self.gestorBD.obtener_habitaciones()
         return habitaciones
+
+    def obtener_habitaciones_disponibles(self, fecha):
+        habitaciones = self.gestorBD.obtener_habitaciones_disponibles_por_fecha(fecha)
+        return habitaciones
+    
