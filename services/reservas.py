@@ -54,3 +54,5 @@ class ReservaService:
         id_cliente = self.gestorBD.obtener_cliente_reserva(id_reserva)
         self.facturasService.generar_factura(id_reserva, id_cliente[0], total)
         self.habitacionService.actualizar_estado_habitacion(habitacion, "disponible")
+
+    

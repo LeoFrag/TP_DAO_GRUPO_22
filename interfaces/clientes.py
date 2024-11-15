@@ -53,23 +53,23 @@ class ClientesTab:
             self.client_table.insert("", "end", values=(cliente[1], cliente[2], cliente[4], cliente[5], cliente[3]))
 
     def registrar_cliente(self):
-        try:
-            # Llama al servicio para registrar la habitación
-            self.clienteService.registrar_cliente(
-                    self.client_name.get(),
-                    self.client_lastname.get(),
-                    self.client_phone.get(),
-                    self.client_direccion.get(),
-                    self.client_email.get()
-            )
+            try:
+                # Llama al servicio para registrar la habitación
+                self.clienteService.registrar_cliente(
+                        self.client_name.get(),
+                        self.client_lastname.get(),
+                        self.client_phone.get(),
+                        self.client_email.get(),
+                        self.client_direccion.get()
+                )
 
-            # Si se registra correctamente, actualiza la tabla
-            self.client_table.insert("", "end", values=(self.client_name.get(),
-                    self.client_lastname.get(),
-                    self.client_phone.get(),
-                    self.client_direccion.get(),
-                    self.client_email.get()))
+                # Si se registra correctamente, actualiza la tabla
+                self.client_table.insert("", "end", values=(self.client_name.get(),
+                        self.client_lastname.get(),
+                        self.client_phone.get(),
+                        self.client_email.get(),
+                        self.client_direccion.get()))
 
-        except ValueError as e:
-            # Muestra un cuadro de diálogo emergente con el mensaje de error
-            messagebox.showerror("Error", str(e))
+            except ValueError as e:
+                # Muestra un cuadro de diálogo emergente con el mensaje de error
+                messagebox.showerror("Error", str(e))

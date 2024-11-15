@@ -42,7 +42,12 @@ class FacturasTab:
         self.cargar_facturas()
 
     def cargar_facturas(self):
+
+        # Limpiar el contenido existente del treeview
+        for item in self.tree.get_children():
+            self.tree.delete(item)
         facturas = self.facturasService.obtener_facturas_detalladas()
+
         for factura in facturas:
             nombre_completo = f"{factura[1]} {factura[2]}"  # nombre y apellido concatenados
             self.tree.insert(

@@ -6,7 +6,7 @@ from interfaces.clientes import ClientesTab
 from interfaces.reservas import ReservasTab
 from interfaces.facturas import FacturasTab
 from interfaces.reportes import ReportesTab
-
+from interfaces.empleados import EmpleadosTab
 
 
 class HotelApp(tk.Tk):
@@ -17,6 +17,8 @@ class HotelApp(tk.Tk):
         self.configure(bg="#f5f5f5")  # Fondo principal
         self.gestorBD = gestorBD  # Obtener la instancia de la base de datos
 
+        # Establecer el tamaño mínimo de la ventana
+        self.minsize(1200, 700)  # Aquí defines el tamaño mínimo que quieres
 
         # Estilos de color para ttk
         self.style = ttk.Style(self)
@@ -37,6 +39,7 @@ class HotelApp(tk.Tk):
             "habitaciones": tk.Button(self.sidebar, text="Habitaciones", bg="#4CAF50", fg="white", command=lambda: self.show_tab("habitaciones")),
             "clientes": tk.Button(self.sidebar, text="Clientes", bg="#4CAF50", fg="white", command=lambda: self.show_tab("clientes")),
             "reservas": tk.Button(self.sidebar, text="Reservas", bg="#4CAF50", fg="white", command=lambda: self.show_tab("reservas")),
+            "empleados": tk.Button(self.sidebar, text="Empleados", bg="#4CAF50", fg="white", command=lambda: self.show_tab("empleados")),
             "facturas": tk.Button(self.sidebar, text="Facturas", bg="#4CAF50", fg="white", command=lambda: self.show_tab("facturas")),
             "informes": tk.Button(self.sidebar, text="Informes", bg="#4CAF50", fg="white", command=lambda: self.show_tab("informes")),
         }
@@ -50,7 +53,7 @@ class HotelApp(tk.Tk):
 
         # Tabs as Frames
         self.tabs = {}
-        for tab in ["habitaciones", "clientes", "reservas","facturas", "informes"]:
+        for tab in ["habitaciones", "clientes", "reservas","facturas", "informes", "empleados"]:
             frame = ttk.Frame(self.main_content)
             frame.place(relwidth=1, relheight=1)
             self.tabs[tab] = frame
@@ -59,6 +62,7 @@ class HotelApp(tk.Tk):
         self.setup_habitaciones_tab()
         self.setup_clientes_tab()
         self.setup_reservas_tab()
+        self.setup_empleados_tab()
         self.setup_facturas_tab()
         self.setup_reportes_tab()
 
@@ -76,9 +80,11 @@ class HotelApp(tk.Tk):
     def setup_clientes_tab(self):
         clientes = ClientesTab(self.tabs["clientes"], self.gestorBD)
 
+    def setup_empleados_tab(self):
+        empleados = EmpleadosTab(self.tabs["empleados"], self.gestorBD)
 
     def setup_reservas_tab(self):
-        reservas = ReservasTab(self.tabs["reservas"], self.gestorBD)
+        reservas = ReservasTab(self.tabs["reservas"], self.tabs["facturas"], self.gestorBD)
 
     def setup_facturas_tab(self):
         facturas = FacturasTab(self.tabs["facturas"], self.gestorBD)

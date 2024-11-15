@@ -24,3 +24,4 @@ class FacturaService:
     
     def generar_factura(self, id_reserva, id_cliente, total):
         self.registrar_factura(id_reserva, id_cliente, total)
+        return True

@@ -23,19 +23,31 @@ class ClienteService:
         if not telefono.isdigit() or len(telefono) < 7 or len(telefono) > 15:
             raise ValueError("El teléfono debe ser un número válido entre 7 y 15 dígitos")
 
+
         # Validación de dirección (mínimo 10 caracteres)
         if len(direccion) < 10:
+            print(direccion)
             raise ValueError("La dirección debe tener al menos 10 caracteres")
 
+        # Validación de correo electrónico con expresión regular
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, email):
+            raise ValueError("El correo electrónico no tiene un formato válido (ejemplo@dominio.com)")
+        
+        if self.gestorBD.validar_email(email):
+            raise ValueError("El correo electrónico ya existe en la base de datos.")
+        
         return True
 
-    def registrar_cliente(self, nombre, apellido, telefono, email, direccion):
-        # Validar los datos
-        if self.validar_cliente(nombre, apellido, telefono, email, direccion):
-            id = self.gestorBD.obtener_proximo_id_cliente()
-            cliente = Cliente(id, nombre, apellido, telefono, email, direccion)
-            self.gestorBD.insertar_cliente(cliente.id_cliente, cliente.nombre, cliente.apellido, cliente.direccion, cliente.telefono, cliente.email)
+    
 
+    def registrar_cliente(self, nombre, apellido, telefono, email, direccion):
+            # Validar los datos
+            if self.validar_cliente(nombre, apellido, telefono, email, direccion):
+                id = self.gestorBD.obtener_proximo_id_cliente()
+                cliente = Cliente(id, nombre, apellido, telefono, email, direccion)
+                self.gestorBD.insertar_cliente(cliente.id_cliente, cliente.nombre, cliente.apellido, cliente.direccion, cliente.telefono, cliente.email)
+        
     def obtener_clientes(self):
         clientes = self.gestorBD.obtener_clientes()
         return clientes

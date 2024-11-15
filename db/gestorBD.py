@@ -132,8 +132,7 @@ class GestorBD:
                 fecha_salida DATE NOT NULL,
                 cantidad_personas INTEGER NOT NULL,
                 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
-                FOREIGN KEY (numero_habitacion) REFERENCES habitaciones(numero_habitacion),
-                CHECK (fecha_salida > fecha_entrada)
+                FOREIGN KEY (numero_habitacion) REFERENCES habitaciones(numero_habitacion)
             );
         ''')
 
@@ -156,7 +155,7 @@ class GestorBD:
                 id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT NOT NULL,
                 apellido TEXT NOT NULL,
-                cargo TEXT CHECK(cargo IN ('recepcionista', 'servicio de limpieza', 'otros')) NOT NULL,
+                cargo TEXT CHECK(cargo IN ('recepcionista', 'limpieza', 'gerente')) NOT NULL,
                 sueldo REAL NOT NULL
             );
         ''')
@@ -166,11 +165,11 @@ class GestorBD:
             CREATE TABLE IF NOT EXISTS asignaciones (
                 id_asignacion INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_empleado INTEGER NOT NULL,
-                id_habitacion INTEGER NOT NULL,
+                numero_habitacion INTEGER NOT NULL,
                 fecha DATE NOT NULL,
                 FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
-                FOREIGN KEY (id_habitacion) REFERENCES habitaciones(id_habitacion),
-                UNIQUE(id_empleado, fecha, id_habitacion)
+                FOREIGN KEY (numero_habitacion) REFERENCES habitaciones(numero),
+                UNIQUE(fecha, numero_habitacion)
             );
         ''')
 
@@ -210,17 +209,6 @@ class GestorBD:
                 (3, 103, '2024-12-10', '2024-12-15', 3)
             ])
 
-        # Validar si ya existen datos en la tabla de facturas antes de insertar
-        self.cursor.execute('SELECT COUNT(*) FROM facturas')
-        if self.cursor.fetchone()[0] == 0:  # Si no hay registros
-            self.cursor.executemany('''
-                INSERT INTO facturas (id_cliente, id_reserva, fecha_emision, total)
-                VALUES (?, ?, ?, ?)
-            ''', [
-                (1, 1, '2024-11-15', 250.0),
-                (2, 2, '2024-12-01', 400.0),
-                (3, 3, '2024-12-10', 750.0)
-            ])
 
         # Validar si ya existen datos en la tabla de empleados antes de insertar
         self.cursor.execute('SELECT COUNT(*) FROM empleados')
@@ -230,23 +218,9 @@ class GestorBD:
                 VALUES (?, ?, ?, ?)
             ''', [
                 ('Ana', 'Ramírez', 'recepcionista', 2000.0),
-                ('Luis', 'Martínez', 'servicio de limpieza', 1800.0),
-                ('Clara', 'Sánchez', 'otros', 2500.0)
+                ('Luis', 'Martínez', 'limpieza', 1800.0),
+                ('Clara', 'Sánchez', 'gerente', 2500.0)
             ])
-
-        # Validar si ya existen datos en la tabla de asignaciones antes de insertar
-        self.cursor.execute('SELECT COUNT(*) FROM asignaciones')
-        if self.cursor.fetchone()[0] == 0:  # Si no hay registros
-            self.cursor.executemany('''
-                INSERT INTO asignaciones (id_empleado, id_habitacion, fecha)
-                VALUES (?, ?, ?)
-            ''', [
-                (1, 101, '2024-11-15'),
-                (2, 102, '2024-11-16'),
-                (3, 103, '2024-11-17')
-            ])
-
-        print("Tablas y datos creados correctamente")
 
 # ------------------------------------------------INSERTAR REGISTRO -----------------------------------------------------
     def insertar_habitacion(self, numero, tipo, precio_por_noche, estado="disponible"):
@@ -267,7 +241,9 @@ class GestorBD:
         '''
         resultado = self.ejecutar_consulta(consulta, (id_cliente, nombre, apellido, direccion, telefono, email))
         if resultado:
-            print("Cliente insertado correctamente.")
+            return True
+        else:
+            return False
 
     def insertar_reserva(self, id_reserva, id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas):
         """Inserta una nueva reserva en la base de datos como una transacción."""
@@ -512,11 +488,66 @@ class GestorBD:
         cursor = self.ejecutar_consulta(consulta, (fecha,))
         return cursor.fetchall() if cursor else []
     
+    def obtener_habitaciones_disponibles_por_asignar(self, fecha):
+        consulta = '''
+            SELECT numero, tipo 
+            FROM habitaciones
+            WHERE numero NOT IN (
+                SELECT numero_habitacion
+                FROM asignaciones
+                WHERE fecha = ?  
+            );
+        '''
+
+        # Ejecutar la consulta con la fecha como parámetro
+        cursor = self.ejecutar_consulta(consulta, (fecha,))
+        return cursor.fetchall() if cursor else []
+    
     def obtener_precio_por_noche(self, numero_habitacion):
         consulta = 'SELECT precio_por_noche FROM habitaciones WHERE numero = ?'
         cursor = self.ejecutar_consulta(consulta, (numero_habitacion,))
         precio = cursor.fetchone()
         return precio[0] if precio else None
+    
+    def obtener_empleado_por_id(self, id_empleado):
+        consulta = 'SELECT * FROM empleados WHERE id_empleado = ?'
+        cursor = self.ejecutar_consulta(consulta, (id_empleado,))
+        return cursor.fetchone() if cursor else None
+    
+    def verificar_disponibilidad_limpieza(self, numero_habitacion, fecha):
+        """
+        Verifica si una habitación está disponible para limpieza en una fecha específica.
+        """
+        consulta = '''
+            SELECT COUNT(*) FROM asignaciones
+            WHERE numero_habitacion = ? AND fecha = ?
+        '''
+        cursor = self.ejecutar_consulta(consulta, (numero_habitacion, fecha))
+        resultado = cursor.fetchone()
+
+        if resultado is None:
+            # Si no hay resultados, asumimos que la habitación está disponible
+            return True
+
+        # `resultado[0]` contiene el número de registros encontrados
+        count = resultado[0]
+        return count == 0  # Disponible si no hay asignaciones
+    
+    def validar_email(self, email):
+        consulta = 'SELECT 1 FROM clientes WHERE email = ?'
+        cursor = self.ejecutar_consulta(consulta, (email,))
+        # Si hay un resultado, devolver True; de lo contrario, False
+        return cursor.fetchone() is not None
+    
+    def asignar_limpieza(self, numero_habitacion, id_empleado, fecha):
+        consulta = """
+        INSERT INTO asignaciones (numero_habitacion, id_empleado, fecha)
+        VALUES (?, ?, ?)
+        """
+        cursor = self.ejecutar_consulta(consulta, (numero_habitacion, id_empleado, fecha))
+        print(f"Ejecutando consulta: {consulta} con parámetros {numero_habitacion}, {id_empleado}, {fecha}")
+ 
+
 # ---------------------------------------------------- ACTUALIZACIONES ---------------------------------------------------------
     
     def actualizar_estado_habitacion(self, numero, estado):

@@ -6,8 +6,9 @@ from services.reservas import ReservaService
 from datetime import datetime, date
 
 class ReservasTab:
-    def __init__(self, parent_frame, gestorBD):
+    def __init__(self, parent_frame, facturas_frame, gestorBD):
         self.tab = parent_frame
+        self.tab_frame = facturas_frame
         self.gestorBD = gestorBD
         self.reservasService = ReservaService(gestorBD)
         self.setup_ui()
@@ -151,9 +152,11 @@ class ReservasTab:
         if tk.messagebox.askyesno("Finalizar Estadía", "¿Estás seguro de que deseas finalizar la estadía de esta reserva?"):
             # Lógica para finalizar la estadía (puede ser una actualización en la base de datos, por ejemplo)
             self.reservasService.finalizar_estadia(id_reserva, habitacion, dias)  # Implementa este método en ReservaService
-            self.tab.event_generate("<<FacturaGenerada>>")
+            self.tab_frame.event_generate("<<FacturaGenerada>>")
             # Eliminar la reserva de la tabla
             self.reservation_table.delete(selected_item)
 
             # Mostrar mensaje de éxito
             tk.messagebox.showinfo("Éxito", "La estadía ha sido finalizada correctamente.")
+
+            

@@ -54,3 +54,26 @@ class HabitacionService:
         tipo = self.gestorBD.obtener_tipo_habitacion(numero_habitacion)
         print(tipo)
         return tipo
+    
+    def asignar_limpieza(self, numero_habitacion, id_empleado, fecha):
+        """
+        Asigna una habitación a un empleado para limpieza en una fecha específica.
+        """
+        try:
+            print(f"Asignar limpieza: Habitación={numero_habitacion}, Empleado={id_empleado}, Fecha={fecha}")
+            
+            # Validar si la habitación está disponible para limpieza en la fecha
+            disponible = self.gestorBD.verificar_disponibilidad_limpieza(numero_habitacion, fecha)
+            print(f"Disponibilidad de la habitación {numero_habitacion} en la fecha {fecha}: {disponible}")
+
+            if not disponible:
+                raise ValueError(f"La habitación {numero_habitacion} ya está asignada para limpieza en la fecha {fecha}.")
+            
+            # Registrar la asignación en la base de datos
+            self.gestorBD.asignar_limpieza(numero_habitacion, id_empleado, fecha)
+            print(f"Habitación {numero_habitacion} asignada correctamente a empleado {id_empleado}.")
+            return (True, "Limpieza asignada correctamente.")
+
+        except Exception as e:
+            print(f"Error al asignar limpieza: {e}")
+            return (False, e)
