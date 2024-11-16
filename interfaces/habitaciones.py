@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from services.habitaciones import HabitacionService
 from tkcalendar import Calendar
-from ttkthemes import ThemedTk
 
 class HabitacionesTab:
     def __init__(self, parent_frame, gestorBD):

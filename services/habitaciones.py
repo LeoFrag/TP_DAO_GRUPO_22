@@ -27,6 +27,9 @@ class HabitacionService:
         if len(numero) > 4:
             raise ValueError("El número de habitación no puede exceder 4 dígitos")
 
+        if self.gestorBD.validar_numero(numero):
+            raise ValueError("La habitacion con ese numero ya existe")
+        
         return True
 
     def registrar_habitacion(self, numero, tipo, precio):

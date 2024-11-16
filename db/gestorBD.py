@@ -131,6 +131,7 @@ class GestorBD:
                 fecha_entrada DATE NOT NULL,
                 fecha_salida DATE NOT NULL,
                 cantidad_personas INTEGER NOT NULL,
+                finalizada INTEGER DEFAULT 0,
                 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
                 FOREIGN KEY (numero_habitacion) REFERENCES habitaciones(numero_habitacion)
             );
@@ -380,6 +381,7 @@ class GestorBD:
             FROM reservas r
             JOIN clientes c ON r.id_cliente = c.id_cliente
             JOIN habitaciones h ON r.numero_habitacion = h.numero
+            WHERE r.finalizada = 0
         '''
         
         cursor = self.ejecutar_consulta(consulta)
@@ -440,7 +442,7 @@ class GestorBD:
         return cursor.fetchall() if cursor else []
     
     def obtener_reservas_por_periodo(self, fechainicio, fechafin):
-        consulta = "SELECT * FROM reservas WHERE fecha_entrada >= ? AND fecha_salida <= ?"
+        consulta = "SELECT * FROM reservas WHERE fecha_entrada >= ? AND fecha_salida <= ? " 
         cursor = self.ejecutar_consulta(consulta, (fechainicio, fechafin))
         return cursor.fetchall() if cursor else []
 
@@ -465,13 +467,26 @@ class GestorBD:
             WHERE numero NOT IN (
                 SELECT numero_habitacion
                 FROM reservas
-                WHERE (fecha_entrada <= ? AND fecha_salida >= ?) 
-                   OR (fecha_entrada <= ? AND fecha_salida >= ?)
-                   OR (fecha_entrada >= ? AND fecha_salida <= ?)
+                WHERE (
+                    (fecha_entrada <= ? AND fecha_salida >= ?) 
+                    OR (fecha_entrada <= ? AND fecha_salida >= ?)
+                    OR (fecha_entrada >= ? AND fecha_salida <= ?)
+                )
+                AND finalizada = 0
+            )
+            OR numero IN (
+                SELECT numero_habitacion
+                FROM reservas
+                WHERE (
+                    (fecha_entrada <= ? AND fecha_salida >= ?) 
+                    OR (fecha_entrada <= ? AND fecha_salida >= ?)
+                    OR (fecha_entrada >= ? AND fecha_salida <= ?)
+                )
+                AND finalizada = 1
             );
         '''
         # Ejecutar la consulta con los parámetros
-        cursor = self.ejecutar_consulta(consulta, (fecha_fin, fecha_inicio, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin))
+        cursor = self.ejecutar_consulta(consulta, (fecha_fin, fecha_inicio, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin, fecha_fin, fecha_inicio, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin))
         return cursor.fetchall() if cursor else []
     
     def obtener_habitaciones_disponibles_por_fecha(self, fecha):
@@ -482,6 +497,7 @@ class GestorBD:
                 SELECT numero_habitacion
                 FROM reservas
                 WHERE ? BETWEEN fecha_entrada AND fecha_salida
+                AND finalizada = 0
             );
         '''
         # Ejecutar la consulta con la fecha como parámetro
@@ -539,6 +555,19 @@ class GestorBD:
         # Si hay un resultado, devolver True; de lo contrario, False
         return cursor.fetchone() is not None
     
+    def validar_numero(self, numero_habitacion):
+        consulta = 'SELECT 1 FROM habitaciones WHERE numero = ?'
+        cursor = self.ejecutar_consulta(consulta, (numero_habitacion,))
+        return cursor.fetchone() is not None 
+
+    def actualizar_estado_reserva(self, id_reserva):
+        consulta = '''
+        UPDATE reservas
+        SET finalizada = 1
+        WHERE id_reserva = ?
+            '''
+        self.cursor.execute(consulta, (id_reserva,))
+
     def asignar_limpieza(self, numero_habitacion, id_empleado, fecha):
         consulta = """
         INSERT INTO asignaciones (numero_habitacion, id_empleado, fecha)

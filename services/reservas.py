@@ -53,6 +53,7 @@ class ReservaService:
         total = precio_por_noche * dias
         id_cliente = self.gestorBD.obtener_cliente_reserva(id_reserva)
         self.facturasService.generar_factura(id_reserva, id_cliente[0], total)
+        self.gestorBD.actualizar_estado_reserva(id_reserva)
         self.habitacionService.actualizar_estado_habitacion(habitacion, "disponible")
 
     

@@ -110,7 +110,10 @@ class ReservasTab:
             return
 
         habitaciones_disponibles = self.reservasService.buscar_habitaciones_disponibles(self.fecha_inicio, self.fecha_fin)
+        print(habitaciones_disponibles)
         if habitaciones_disponibles:
+            print(habitaciones_disponibles)
+
             self.extra_frame.grid(row=0, column=2, rowspan=3, padx=20)
             clientes = self.gestorBD.obtener_clientes()
             self.clientes_dict = {f"{c[1]} {c[2]}": c[0] for c in clientes}

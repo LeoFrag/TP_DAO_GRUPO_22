@@ -116,7 +116,7 @@ class ReportesTab:
     def calcular_ingresos_por_mes(self, reservas):
         ingresos_por_mes = defaultdict(float)
         for reserva in reservas:
-            id_reserva, id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas = reserva
+            id_reserva, id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas, finalizada = reserva
             fecha_entrada = datetime.strptime(fecha_entrada, '%Y-%m-%d')
             fecha_salida = datetime.strptime(fecha_salida, '%Y-%m-%d')
             dias_estadia = (fecha_salida - fecha_entrada).days
@@ -130,7 +130,7 @@ class ReportesTab:
         ocupacion_por_tipo = defaultdict(float)
         cantidad_por_tipo = defaultdict(int)
         for reserva in reservas:
-            id_reserva, id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas = reserva
+            id_reserva, id_cliente, numero_habitacion, fecha_entrada, fecha_salida, cantidad_personas, finalizada = reserva
             tipo_habitacion = self.habitacionesService.obtener_tipo_habitacion(numero_habitacion)
             fecha_entrada = datetime.strptime(fecha_entrada, '%Y-%m-%d')
             fecha_salida = datetime.strptime(fecha_salida, '%Y-%m-%d')
