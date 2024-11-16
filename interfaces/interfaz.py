@@ -18,7 +18,7 @@ class HotelApp(tk.Tk):
         self.gestorBD = gestorBD  # Obtener la instancia de la base de datos
 
         # Establecer el tamaño mínimo de la ventana
-        self.minsize(1200, 700)  # Aquí defines el tamaño mínimo que quieres
+        self.minsize(1000, 700)  # Aquí defines el tamaño mínimo que quieres
 
         # Estilos de color para ttk
         self.style = ttk.Style(self)
