@@ -10,7 +10,6 @@ def main():
     interfazHotel = HotelApp(gestorBD)
     interfazHotel.mainloop()
 
-# Ejemplo de uso del sistema de gestión de hotel
 if __name__ == "__main__":
     main()
 

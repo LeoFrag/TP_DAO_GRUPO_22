@@ -130,7 +130,10 @@ class ReservasTab:
             habitacion = self.habitacion_combobox.get()
             num_personas = self.num_people.get()
 
-            id_reserva = self.gestorBD.obtener_proximo_id_reserva()
+            if not self.reservasService.verificar_disponibilidad(habitacion, self.fecha_inicio, self.fecha_fin):
+                raise ValueError(f"La habitación '{habitacion}' no está disponible en las fechas seleccionadas.")
+            
+            id_reserva = self.gestorBD.obtener_proximo_id_reserva() 
             self.reservasService.registrar_reserva(id_reserva, cliente_id, habitacion, self.fecha_inicio, self.fecha_fin, num_personas)
 
             self.reservation_table.insert("", "end", values=(id_reserva, nombre_cliente, habitacion, self.fecha_inicio, self.fecha_fin))

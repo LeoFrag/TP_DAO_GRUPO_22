@@ -72,6 +72,12 @@ class HabitacionService:
             if not disponible:
                 raise ValueError(f"La habitación {numero_habitacion} ya está asignada para limpieza en la fecha {fecha}.")
             
+            # Validar que el empleado no tenga más de 5 asignaciones en ese día
+            asignaciones_diarias = self.gestorBD.obtener_asignaciones_diarias(id_empleado, fecha)
+            if asignaciones_diarias >= 5:
+                raise ValueError(f"El empleado {id_empleado} ya tiene 5 o más asignaciones para el día {fecha}.")
+
+            
             # Registrar la asignación en la base de datos
             self.gestorBD.asignar_limpieza(numero_habitacion, id_empleado, fecha)
             print(f"Habitación {numero_habitacion} asignada correctamente a empleado {id_empleado}.")

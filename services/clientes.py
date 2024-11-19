@@ -45,7 +45,7 @@ class ClienteService:
             # Validar los datos
             if self.validar_cliente(nombre, apellido, telefono, email, direccion):
                 id = self.gestorBD.obtener_proximo_id_cliente()
-                cliente = Cliente(id, nombre, apellido, telefono, email, direccion)
+                cliente = Cliente(id, nombre, apellido, direccion, telefono, email)
                 self.gestorBD.insertar_cliente(cliente.id_cliente, cliente.nombre, cliente.apellido, cliente.direccion, cliente.telefono, cliente.email)
         
     def obtener_clientes(self):

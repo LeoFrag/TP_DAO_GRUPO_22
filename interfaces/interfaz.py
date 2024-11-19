@@ -14,11 +14,11 @@ class HotelApp(tk.Tk):
         super().__init__()
         self.title("Gestión de Hotel")
         self.geometry("1400x700")
-        self.configure(bg="#f5f5f5")  # Fondo principal
-        self.gestorBD = gestorBD  # Obtener la instancia de la base de datos
+        self.configure(bg="#f5f5f5") 
+        self.gestorBD = gestorBD
 
         # Establecer el tamaño mínimo de la ventana
-        self.minsize(1000, 700)  # Aquí defines el tamaño mínimo que quieres
+        self.minsize(1000, 700)
 
         # Estilos de color para ttk
         self.style = ttk.Style(self)
@@ -58,7 +58,6 @@ class HotelApp(tk.Tk):
             frame.place(relwidth=1, relheight=1)
             self.tabs[tab] = frame
 
-        # Initialize tabs with content
         self.setup_habitaciones_tab()
         self.setup_clientes_tab()
         self.setup_reservas_tab()
@@ -66,7 +65,6 @@ class HotelApp(tk.Tk):
         self.setup_facturas_tab()
         self.setup_reportes_tab()
 
-        # Show initial tab
         self.show_tab("habitaciones")
 
     def show_tab(self, tab_name):

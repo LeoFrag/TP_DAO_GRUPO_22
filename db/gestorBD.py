@@ -220,7 +220,8 @@ class GestorBD:
             ''', [
                 ('Ana', 'Ramírez', 'recepcionista', 2000.0),
                 ('Luis', 'Martínez', 'limpieza', 1800.0),
-                ('Clara', 'Sánchez', 'gerente', 2500.0)
+                ('Clara', 'Sánchez', 'gerente', 2500.0),
+                ('Martin', 'Moura', 'limpieza', 1300.0)
             ])
 
 # ------------------------------------------------INSERTAR REGISTRO -----------------------------------------------------
@@ -442,8 +443,12 @@ class GestorBD:
         return cursor.fetchall() if cursor else []
     
     def obtener_reservas_por_periodo(self, fechainicio, fechafin):
-        consulta = "SELECT * FROM reservas WHERE fecha_entrada >= ? AND fecha_salida <= ? " 
-        cursor = self.ejecutar_consulta(consulta, (fechainicio, fechafin))
+        consulta = """
+        SELECT * FROM reservas WHERE (fecha_entrada < ? AND fecha_salida > ?) 
+        OR (fecha_entrada BETWEEN ? AND ?)
+        OR (fecha_salida BETWEEN ? AND ?);
+        """
+        cursor = self.ejecutar_consulta(consulta, (fechainicio, fechafin, fechainicio, fechafin, fechainicio, fechafin))
         return cursor.fetchall() if cursor else []
 
     def obtener_empleados(self):
@@ -503,6 +508,39 @@ class GestorBD:
         # Ejecutar la consulta con la fecha como parámetro
         cursor = self.ejecutar_consulta(consulta, (fecha,))
         return cursor.fetchall() if cursor else []
+    
+    def obtener_habitacion_reservada(self, habitacion, fecha_inicio, fecha_fin):
+        consulta = """
+        SELECT COUNT(*) AS total
+        FROM reservas
+        WHERE numero_habitacion = ? AND finalizada = 0
+          AND (
+            (fecha_entrada <= ? AND fecha_salida >= ?)
+            OR
+            (fecha_entrada <= ? AND fecha_salida >= ?)
+            OR
+            (fecha_entrada >= ? AND fecha_salida <= ?)
+          );
+        """
+        
+        cursor = self.ejecutar_consulta(consulta, (habitacion, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin, fecha_inicio, fecha_fin))
+        resultado = cursor.fetchone()
+
+        if resultado is None or resultado[0] == 0:
+            return False  # No hay reservas
+        return True  # Hay reservas
+
+    def obtener_asignaciones_diarias(self, id_empleado, fecha):
+        consulta = """
+        SELECT COUNT(*) 
+        FROM asignaciones
+        WHERE id_empleado = ? AND fecha = ?
+        """
+        cursor = self.ejecutar_consulta(consulta, (id_empleado, fecha))
+        resultado = cursor.fetchone()
+        
+        # Si no hay resultados, asumimos que el empleado no tiene asignaciones
+        return resultado[0] if resultado else 0
     
     def obtener_habitaciones_disponibles_por_asignar(self, fecha):
         consulta = '''

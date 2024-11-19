@@ -28,7 +28,7 @@ class ReservaService:
         # Validar los datos
         if self.validar_reserva(num_personas):
             reserva = Reserva(id_reserva, cliente_id, num_habitacion, fecha_inicio, fecha_fin, num_personas)
-            self.gestorBD.insertar_reserva(reserva.id_reserva, reserva.cliente, reserva.habitacion, reserva.fecha_entrada, reserva.fecha_entrada, reserva.cantidad_personas)
+            self.gestorBD.insertar_reserva(reserva.id_reserva, reserva.cliente, reserva.habitacion, reserva.fecha_entrada, reserva.fecha_salida, reserva.cantidad_personas)
 
     def obtener_reservas(self):
         reservas =self.gestorBD.obtener_reservas()
@@ -38,6 +38,12 @@ class ReservaService:
         reservas = self.gestorBD.obtener_reservas_detalladas()
         return reservas
 
+    def verificar_disponibilidad(self, habitacion, fecha_inicio, fecha_fin):
+
+        habitacion_en_reserva = self.gestorBD.obtener_habitacion_reservada(habitacion, fecha_inicio, fecha_fin)
+        if habitacion_en_reserva:
+            return False
+        return True
 
     def buscar_habitaciones_disponibles(self,fechainicio, fechafin):
         habitaciones = self.gestorBD.obtener_habitaciones_disponibles(fechainicio, fechafin)

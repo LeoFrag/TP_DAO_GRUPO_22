@@ -44,17 +44,17 @@ class ClientesTab:
         self.client_table.heading("Email", text="Email")
         self.client_table.heading("Direccion", text="Direccion")
         self.client_table.pack(fill="both", expand=True, pady=10)
-            # Cargar clientes al iniciar la vista
+
         self.cargar_clientes()
 
     def cargar_clientes(self):
-        clientes = self.clienteService.obtener_clientes()  # Supongo que este método devuelve una lista de clientes
+        clientes = self.clienteService.obtener_clientes() 
         for cliente in clientes:
             self.client_table.insert("", "end", values=(cliente[1], cliente[2], cliente[4], cliente[5], cliente[3]))
 
     def registrar_cliente(self):
             try:
-                # Llama al servicio para registrar la habitación
+
                 self.clienteService.registrar_cliente(
                         self.client_name.get(),
                         self.client_lastname.get(),
@@ -71,5 +71,4 @@ class ClientesTab:
                         self.client_direccion.get()))
 
             except ValueError as e:
-                # Muestra un cuadro de diálogo emergente con el mensaje de error
                 messagebox.showerror("Error", str(e))

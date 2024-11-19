@@ -14,15 +14,11 @@ class FacturasTab:
 
 
     def setup_ui(self):
-        # Título
-        tk.Label(self.tab, text="Facturas generadas", font=("Arial", 16, "bold"), fg="#333", bg="#f5f5f5").pack(pady=10)
-        
-        # Crear el Treeview con las columnas
 
+        tk.Label(self.tab, text="Facturas generadas", font=("Arial", 16, "bold"), fg="#333", bg="#f5f5f5").pack(pady=10)
         
         self.tree = ttk.Treeview(self.tab, columns=("ID", "Cliente", "Habitacion", "Fecha de emisión", "Total"), show="headings")
         
-        # Configurar encabezados de columna
         self.tree.heading("ID", text="ID Reserva")
         self.tree.heading("Cliente", text="Cliente")
         self.tree.heading("Habitacion", text="Habitacion")
