@@ -12,7 +12,7 @@ Repositorio creado para el trabajo práctico de DAO
 ## Enunciado
 
 ### Objetivo
-Desarrollar un sistema de gestión para un hotel que permita manejar habitaciones, reservas, clientes y facturación.
+Sistema de gestión para un hotel que permita manejar habitaciones, reservas, clientes y facturación.
 
 ### Requerimientos
 
