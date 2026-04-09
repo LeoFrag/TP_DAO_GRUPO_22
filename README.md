@@ -74,3 +74,15 @@ Sistema de gestión para un hotel que permita manejar habitaciones, reservas, cl
 - Implementar reportes:
   - Generar un gráfico de barras mostrando la ocupación promedio por tipo de habitación.
   - Generar un gráfico de líneas mostrando los ingresos mensuales.
+
+## Funcionamiento
+
+### Para el funcionamiento del programa, debe instalar las siguientes librerias
+
+- pip install tkinter
+- pip install tkcalendar
+- pip install datetime
+- pip install pillow
+- pip install reportlab
+- pip install matplotlib
+- pip install ttkthemes
